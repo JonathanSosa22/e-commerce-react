@@ -9,6 +9,10 @@ img {
   max-height: 600px;
 }
 
+.btn {
+  margin: 0 20px 20px 0;
+}
+
 /* Loader */
 
 .lds-roller {
