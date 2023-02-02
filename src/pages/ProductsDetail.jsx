@@ -1,4 +1,4 @@
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
@@ -6,12 +6,15 @@ import { setIsLoading } from "../store/slices/isLoadong.slice";
 import { Button, Col, Row, ListGroup } from "react-bootstrap";
 import Carousel from "react-bootstrap/Carousel";
 import { categoriesFilterThunk } from "../store/slices/products.slice";
+import { addCartThunk } from "../store/slices/addCart.slice";
 
 const ProductsDetail = () => {
   const { id } = useParams();
   const [detail, setDetail] = useState({});
   const dispatch = useDispatch();
   const productRelated = useSelector((state) => state.product);
+  const [rate, setRate] = useState(1);
+  const navigate = useNavigate();
 
   useEffect(() => {
     dispatch(setIsLoading(true));
@@ -28,6 +31,20 @@ const ProductsDetail = () => {
         }, 1000);
       });
   }, [id]);
+
+  const addToCart = () => {
+    const token = localStorage.getItem("token");
+
+    if (token) {
+      const cart = {
+        id: detail.id,
+        quantity: rate,
+      };
+      dispatch(addCartThunk(cart));
+    } else {
+      navigate("/login");
+    }
+  };
 
   return (
     <div>
@@ -75,6 +92,12 @@ const ProductsDetail = () => {
 
       <p>{detail?.description}</p>
       <p>Price: ${detail?.price}</p>
+      <div className="mb-3">
+        <Button onClick={addToCart}>Add To Cart</Button>
+        <Button onClick={() => setRate(rate - 1)}>-</Button>
+        {rate}
+        <Button onClick={() => setRate(rate + 1)}>+</Button>
+      </div>
     </div>
   );
 };
