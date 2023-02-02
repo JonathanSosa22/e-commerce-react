@@ -2,35 +2,28 @@ import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import axios from "axios";
 import { useDispatch, useSelector } from "react-redux";
-import { setIsLoading } from "../store/slices/isLoadong.slice";
 import { Button, Col, Row, ListGroup } from "react-bootstrap";
 import Carousel from "react-bootstrap/Carousel";
-import { categoriesFilterThunk } from "../store/slices/products.slice";
+import { getProductsThunk } from "../store/slices/products.slice";
 import { addCartThunk } from "../store/slices/addCart.slice";
 
 const ProductsDetail = () => {
   const { id } = useParams();
-  const [detail, setDetail] = useState({});
   const dispatch = useDispatch();
-  const productRelated = useSelector((state) => state.product);
   const [rate, setRate] = useState(1);
   const navigate = useNavigate();
 
   useEffect(() => {
-    dispatch(setIsLoading(true));
-    axios
-      .get(`https://e-commerce-api.academlo.tech/api/v1/products/${id}`)
-      .then((resp) => {
-        setDetail(resp.data.data.product);
-        dispatch(categoriesFilterThunk(resp.data.category?.id));
-      })
-      .catch((error) => console.error(error))
-      .finally(() => {
-        setTimeout(() => {
-          dispatch(setIsLoading(false));
-        }, 1000);
-      });
+    dispatch(getProductsThunk());
   }, [id]);
+
+  const allNews = useSelector((state) => state.products);
+  const detail = allNews.find((news) => news.id === Number(id));
+  const newsRelated = allNews.filter(
+    (news) => news.category.name === detail.category.name
+  );
+
+  console.log(newsRelated);
 
   const addToCart = () => {
     const token = localStorage.getItem("token");
@@ -56,48 +49,51 @@ const ProductsDetail = () => {
             <Carousel.Item>
               <img
                 className="d-block w-100"
-                src={detail.productImgs?.[0]}
+                src={detail.productImgs[0]}
                 alt="First slide"
               />
             </Carousel.Item>
             <Carousel.Item>
               <img
                 className="d-block w-100"
-                src={detail.productImgs?.[1]}
+                src={detail.productImgs[1]}
                 alt="Second slide"
               />
             </Carousel.Item>
             <Carousel.Item>
               <img
                 className="d-block w-100"
-                src={detail.productImgs?.[2]}
+                src={detail.productImgs[2]}
                 alt="Third slide"
               />
             </Carousel.Item>
           </Carousel>
+
+          <p>{detail?.description}</p>
+          <p>Price: ${detail?.price}</p>
+          <div className="mb-3">
+            <Button onClick={addToCart}>Add To Cart</Button>
+            <Button onClick={() => setRate(rate - 1)}>-</Button>
+            {rate}
+            <Button onClick={() => setRate(rate + 1)}>+</Button>
+          </div>
         </Col>
 
-        {/* <Col lg={3}>
-          <h2>Releated Products</h2>
+        <Col lg="3">
+          <h3>Releated Products</h3>
 
           <ListGroup>
-            {productRelated?.map((productItem) => (
-              <ListGroup.Item key={productItem.id}>
-                {productItem.title}
-              </ListGroup.Item>
+            {newsRelated?.map((newsItem) => (
+              <div>
+                <ListGroup.Item key={newsItem.id}>
+                  {newsItem.title}
+                  <img src={newsItem.productImgs[0]} alt="" />
+                </ListGroup.Item>
+              </div>
             ))}
           </ListGroup>
-        </Col> */}
+        </Col>
       </Row>
-
-      <p>{detail?.description}</p>
-      <p>Price: ${detail?.price}</p>
-      <div className="mb-3">
-        <Button onClick={addToCart}>Add To Cart</Button>
-        <Button onClick={() => setRate(rate - 1)}>-</Button>
-        {rate}
-        <Button onClick={() => setRate(rate + 1)}>+</Button>
-      </div>
     </div>
   );
 };
